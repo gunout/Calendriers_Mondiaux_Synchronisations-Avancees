@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendriers Mondiaux & Synchronisations Avancées</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Cinzel+Decorative&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .main-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 3em;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #B8B8B8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation tabs */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255, 215, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #2C3E50;
+            border-color: #FFD700;
+        }
+
+        /* Tab content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Calendar cards */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .calendar-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calendar-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #FFD700, #FFA500, #FF6B6B);
+        }
+
+        .calendar-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(255, 215, 0, 0.2);
+            border-color: #FFD700;
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .calendar-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .calendar-type {
+            font-size: 0.9em;
+            color: #B8B8B8;
+            margin-left: 10px;
+        }
+
+        .calendar-date {
+            font-size: 1.8em;
+            color: #FFFFFF;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .calendar-details {
+            color: #D0D0D0;
+            line-height: 1.6;
+        }
+
+        .calendar-detail-item {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .calendar-detail-label {
+            color: #B8B8B8;
+        }
+
+        .calendar-detail-value {
+            color: #FFD700;
+            font-weight: 600;
+        }
+
+        /* Enhanced crossing analysis */
+        .crossing-analysis {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 140, 0, 0.15));
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .crossing-title {
+            font-size: 2.2em;
+            color: #FFD700;
+            text-align: center;
+            margin-bottom: 25px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .crossing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        .crossing-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 5px solid #FFD700;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .crossing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.3), transparent);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .crossing-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .crossing-calendars {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .crossing-significance {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #FFD700;
+        }
+
+        .crossing-date {
+            font-size: 1.8em;
+            color: #FFFFFF;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .crossing-details {
+            color: #D0D0D0;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+
+        .crossing-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #B8B8B8;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 1.2em;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        /* Prediction timeline */
+        .prediction-timeline {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .timeline-date {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #2C3E50;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .timeline-content {
+            flex: 1;
+            margin-left: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border-left: 3px solid #FFD700;
+        }
+
+        .timeline-event {
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+
+        .timeline-description {
+            color: #D0D0D0;
+            font-size: 0.95em;
+        }
+
+        /* Mathematical analysis */
+        .math-analysis {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .formula {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            color: #FFD700;
+            font-size: 1.1em;
+        }
+
+        .calculation-result {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            color: #00FF00;
+            font-weight: bold;
+        }
+
+        /* Chart containers */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            height: 400px;
+            position: relative;
+        }
+
+        .large-chart {
+            height: 500px;
+        }
+
+        /* Comparison table */
+        .comparison-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 30px 0;
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            text-align: left;
+            color: #FFD700;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #D0D0D0;
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        /* Info boxes */
+        .info-box {
+            background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info-box h3 {
+            color: #FFD700;
+            margin-bottom: 15px;
+        }
+
+        .info-box p {
+            color: #D0D0D0;
+            line-height: 1.6;
+        }
+
+        /* Highlight */
+        .highlight {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #FFD700;
+            font-weight: 600;
+        }
+
+        .rare-event {
+            background: linear-gradient(45deg, rgba(255, 0, 0, 0.2), rgba(255, 215, 0, 0.2));
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #FF6B6B;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Loading animation */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #FFD700;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 215, 0, 0.3);
+            border-top: 4px solid #FFD700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2em;
+            }
+            
+            .calendar-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .crossing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-tab {
+                width: 200px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="main-title">🌍 Calendriers Mondiaux & Synchronisations Avancées</h1>
+        <p class="subtitle">Analyse mathématique des croisements calendriques et prédictions de convergence</p>
+    </div>
+
+    <div class="container">
+        <!-- Navigation tabs -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="showTab('current')">📅 Dates Actuelles</div>
+            <div class="nav-tab" onclick="showTab('crossings')">🔄 Croisements Prédits</div>
+            <div class="nav-tab" onclick="showTab('synchronisation')">⚙️ Synchronisations</div>
+            <div class="nav-tab" onclick="showTab('comparison')">📊 Comparaisons</div>
+            <div class="nav-tab" onclick="showTab('analysis')">🔍 Analyses Avancées</div>
+        </div>
+
+        <!-- Current Dates Tab -->
+        <div id="current" class="tab-content active">
+            <h2 style="text-align: center; color: #FFD700; margin-bottom: 30px;">Dates Actuelles dans les Différents Calendriers</h2>
+            
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Sera généré par JavaScript -->
+            </div>
+
+            <div class="info-box">
+                <h3>📚 Comprendre les Différences</h3>
+                <p>Les calendriers mondiaux se divisent principalement en trois catégories : 
+                <span class="highlight">solaires</span> (basés sur la Terre autour du Soleil), 
+                <span class="highlight">lunaires</span> (basés sur les phases de la Lune), et 
+                <span class="highlight">lunisolaires</span> (combinaison des deux). 
+                Ces différences créent des décalages qui se résorbent périodiquement.</p>
+            </div>
+        </div>
+
+        <!-- Crossings Tab -->
+        <div id="crossings" class="tab-content">
+            <div class="crossing-analysis">
+                <h2 class="crossing-title">🔄 Prédictions de Croisements Calendriques</h2>
+                
+                <div class="crossing-grid" id="crossingGrid">
+                    <!-- Sera généré par JavaScript -->
+                </div>
+
+                <div class="prediction-timeline">
+                    <h3 style="color: #FFD700; margin-bottom: 20px;">📅 Timeline des Prochains Croisements Majeurs</h3>
+                    <div id="timelineContainer">
+                        <!-- Sera généré par JavaScript -->
+                    </div>
+                </div>
+
+                <div class="math-analysis">
+                    <h3 style="color: #FFD700; margin-bottom: 20px;">🧮 Calculs Mathématiques des Croisements</h3>
+                    
+                    <div class="formula">
+                        Cycle Métonique : 19 années solaires ≈ 235 mois lunaires
+                    </div>
+                    
+                    <div class="formula">
+                        Dérive Julien-Grégorien : (365.25 - 365.2425) × n = décalage en jours
+                    </div>
+                    
+                    <div class="calculation-result" id="calculationResult">
+                        Prochain croisement significatif : 2033 (alignement métonique parfait)
+                    </div>
+
+                    <div class="chart-container large-chart">
+                        <canvas id="crossingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Synchronisation Tab -->
+        <div id="synchronisation" class="tab-content">
+            <h2 style="text-align: center; color: #FFD700; margin-bottom: 30px;">Quand les Calendriers se "Rattrapent"</h2>
+            
+            <div class="sync-section">
+                <div class="sync-grid" id="syncGrid">
+                    <!-- Sera généré par JavaScript -->
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="syncChart"></canvas>
+            </div>
+
+            <div class="info-box">
+                <h3>🔄 Phénomènes de Synchronisation</h3>
+                <p>Les calendriers se "rattrapent" lorsque leurs cycles astronomiques s'alignent. 
+                Par exemple, le cycle métonique de 19 ans fait que les calendriers lunaire et solaire 
+                se resynchronisent presque parfaitement. Ces points de convergence sont importants 
+                pour les cultures qui utilisent des systèmes calendriques multiples.</p>
+            </div>
+        </div>
+
+        <!-- Comparison Tab -->
+        <div id="comparison" class="tab-content">
+            <h2 style="text-align: center; color: #FFD700; margin-bottom: 30px;">Comparaison des Systèmes Calendriques</h2>
+            
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Calendrier</th>
+                            <th>Type</th>
+                            <th>Jours/an</th>
+                            <th>Année bissextile</th>
+                            <th>Époque</th>
+                            <th>Précision</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comparisonTableBody">
+                        <!-- Sera généré par JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Advanced Analysis Tab -->
+        <div id="analysis" class="tab-content">
+            <h2 style="text-align: center; color: #FFD700; margin-bottom: 30px;">Analyses Avancées & Prédictions</h2>
+            
+            <div class="crossing-grid">
+                <div class="sync-item">
+                    <div class="sync-calendars">📊 Précision à Long Terme</div>
+                    <div class="sync-description">
+                        Analyse de la dérive des calendriers sur 1000 ans et leur besoin d'ajustement.
+                    </div>
+                    <div class="sync-date" id="precisionAnalysis">Calcul en cours...</div>
+                </div>
+                
+                <div class="sync-item">
+                    <div class="sync-calendars">🌐 Impact Global</div>
+                    <div class="sync-description">
+                        Comment les différents calendriers influencent les affaires internationales et la coordination.
+                    </div>
+                    <div class="sync-date" id="globalImpact">Analyse en cours...</div>
+                </div>
+                
+                <div class="sync-item">
+                    <div class="sync-calendars">🔮 Prochaine Synchronisation</div>
+                    <div class="sync-description">
+                        Prédiction des prochaines dates importantes de convergence calendrique.
+                    </div>
+                    <div class="sync-date" id="nextSync">Calcul en cours...</div>
+                </div>
+            </div>
+
+            <div class="chart-container large-chart">
+                <canvas id="analysisChart"></canvas>
+            </div>
+
+            <div class="math-analysis">
+                <h3 style="color: #FFD700; margin-bottom: 20px;">🎯 Prédictions de Convergence Rares</h3>
+                
+                <div class="formula">
+                    Convergence Triple : LCM(19, 33, 400) = 501,600 ans
+                </div>
+                
+                <div class="calculation-result">
+                    Prochaine convergence triple (Julien-Islamique-Chinois) : ~502,025
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="rareEventsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Calendar systems data
+        const calendarSystems = [
+            {
+                name: 'Grégorien',
+                icon: '🌍',
+                type: 'Solaire',
+                epoch: 'An 1 de notre ère',
+                currentYear: 2025,
+                currentMonth: 1,
+                currentDay: 1,
+                leapYear: 'Oui (tous les 4 ans, sauf siècles non divisibles par 400)',
+                daysPerYear: 365.2425,
+                accuracy: 'Très élevée',
+                description: 'Calendrier international standard'
+            },
+            {
+                name: 'Julien',
+                icon: '🏛️',
+                type: 'Solaire',
+                epoch: '45 av. J.-C.',
+                currentYear: 2025,
+                currentMonth: 1,
+                currentDay: 1,
+                leapYear: 'Oui (tous les 4 ans)',
+                daysPerYear: 365.25,
+                accuracy: 'Moyenne',
+                description: 'Ancien calendrier chrétien'
+            },
+            {
+                name: 'Hijri',
+                icon: '🌙',
+                type: 'Lunaire',
+                epoch: '622 ap. J.-C. (Hégire)',
+                currentYear: 1446,
+                currentMonth: 7,
+                currentDay: 1,
+                leapYear: 'Oui (11 années bissextiles sur 30)',
+                daysPerYear: 354.367,
+                accuracy: 'Lunaire',
+                description: 'Calendrier islamique'
+            },
+            {
+                name: 'Hébreu',
+                icon: '✡️',
+                type: 'Lunisolaire',
+                epoch: '3761 av. J.-C.',
+                currentYear: 5785,
+                currentMonth: 10,
+                currentDay: 1,
+                leapYear: 'Oui (7 années bissextiles sur 19)',
+                daysPerYear: 365.2468,
+                accuracy: 'Élevée',
+                description: 'Calendrier juif'
+            },
+            {
+                name: 'Chinois',
+                icon: '🐉',
+                type: 'Lunisolaire',
+                epoch: '2637 av. J.-C.',
+                currentYear: 4722,
+                currentMonth: 1,
+                currentDay: 1,
+                leapYear: 'Oui (13 mois certains ans)',
+                daysPerYear: 365.25,
+                accuracy: 'Élevée',
+                description: 'Calendrier lunaire chinois'
+            },
+            {
+                name: 'Persan',
+                icon: '🏺',
+                type: 'Solaire',
+                epoch: '622 ap. J.-C.',
+                currentYear: 1403,
+                currentMonth: 1,
+                currentDay: 1,
+                leapYear: 'Oui (système complexe)',
+                daysPerYear: 365.2422,
+                accuracy: 'Très élevée',
+                description: 'Calendrier iranien'
+            },
+            {
+                name: 'Éthiopien',
+                icon: '🦁',
+                type: 'Solaire',
+                epoch: '8 av. J.-C.',
+                currentYear: 2017,
+                currentMonth: 4,
+                currentDay: 1,
+                leapYear: 'Oui (tous les 4 ans)',
+                daysPerYear: 365.25,
+                accuracy: 'Moyenne',
+                description: 'Calendrier éthiopien'
+            },
+            {
+                name: 'Bouddhiste',
+                icon: '☸️',
+                type: 'Solaire',
+                epoch: '543 av. J.-C.',
+                currentYear: 2568,
+                currentMonth: 1,
+                currentDay: 1,
+                leapYear: 'Oui (similaire au grégorien)',
+                daysPerYear: 365.2425,
+                accuracy: 'Très élevée',
+                description: 'Calendrier bouddhiste'
+            }
+        ];
+
+        // Enhanced crossing predictions
+        const crossingPredictions = [
+            {
+                calendars: 'Grégorien-Julien',
+                date: '2100-03-01',
+                gregorianDate: '1 Mars 2100',
+                julianDate: '16 Février 2100',
+                significance: 'RARE',
+                description: 'Décalage de 13 jours accumulé - divergence maximale avant correction',
+                frequency: 'Tous les 100 ans',
+                culturalImpact: 'Affecte les dates religieuses orthodoxes',
+                mathematical: '13 jours = 100 × (365.25 - 365.2425)',
+                probability: 1.0,
+                nextOccurrence: '2100'
+            },
+            {
+                calendars: 'Hébreu-Islamique',
+                date: '20874-05-15',
+                gregorianDate: '15 Mai 20874',
+                hebrewDate: '1 Iyar 5934',
+                islamicDate: '1 Ramadan 2547',
+                significance: 'EXTRÊMEMENT RARE',
+                description: 'Alignement approximatif après 18,849 ans',
+                frequency: 'Tous les ~18,849 ans',
+                culturalImpact: 'Convergence de deux calendriers religieux majeurs',
+                mathematical: 'LCM(19, 30) × facteur de correction ≈ 18,849',
+                probability: 0.000053,
+                nextOccurrence: '20874'
+            },
+            {
+                calendars: 'Chinois-Grégorien',
+                date: '2031-02-01',
+                gregorianDate: '1 Février 2031',
+                chineseDate: 'Nouvel An du Lapin',
+                significance: 'SIGNIFICATIF',
+                description: 'Nouvel An chinois très proche du début du mois grégorien',
+                frequency: 'Variable',
+                culturalImpact: 'Fête la plus importante du calendrier chinois',
+                mathematical: 'Cycle de 60 ans : 2031 = 47ème année du cycle',
+                probability: 0.167,
+                nextOccurrence: '2031'
+            },
+            {
+                calendars: 'Persan-Grégorien',
+                date: '2025-03-20',
+                gregorianDate: '20 Mars 2025',
+                persianDate: 'Nowruz 1404',
+                significance: 'ANNUEL',
+                description: 'Nowruz coïncide avec l\'équinoxe de printemps',
+                frequency: 'Annuel',
+                culturalImpact: 'Nouvel an perse célébré par millions',
+                mathematical: 'Calcul astronomique précis de l\'équinoxe',
+                probability: 1.0,
+                nextOccurrence: '2025'
+            },
+            {
+                calendars: 'Triple Métonique',
+                date: '2033-09-12',
+                gregorianDate: '12 Septembre 2033',
+                hebrewDate: 'Rosh Hashana 5994',
+                chineseDate: '18ème jour du 8ème mois',
+                significance: 'TRÈS RARE',
+                description: 'Alignement métonique parfait - début de nouveau cycle',
+                frequency: 'Tous les 19 ans',
+                culturalImpact: 'Nouvel an juif + phase lunaire importante',
+                mathematical: '19 × 365.2425 ≈ 235 × 29.53059',
+                probability: 0.053,
+                nextOccurrence: '2033'
+            },
+            {
+                calendars: 'Diwali-Noël',
+                date: '2078-12-25',
+                gregorianDate: '25 Décembre 2078',
+                hinduDate: 'Diwali 2080',
+                significance: 'RARE',
+                description: 'Diwali et Noël dans la même semaine',
+                frequency: 'Tous les ~532 ans',
+                culturalImpact: 'Convergence de deux fêtes lumineuses majeures',
+                mathematical: 'LCM(365.2425, 354.367) × facteur ≈ 532',
+                probability: 0.00188,
+                nextOccurrence: '2078'
+            }
+        ];
+
+        // Timeline events
+        const timelineEvents = [
+            {
+                date: '2025-03-20',
+                event: 'Nowruz Persan',
+                description: 'Équinoxe de printemps - début de l\'an 1404',
+                calendars: 'Persan-Grégorien'
+            },
+            {
+                date: '2031-02-01',
+                event: 'Nouvel An Chinois',
+                description: 'Coïncidence rare avec début de mois grégorien',
+                calendars: 'Chinois-Grégorien'
+            },
+            {
+                date: '2033-09-12',
+                event: 'Cycle Métonique Parfait',
+                description: 'Alignement lunaire-solaire optimal',
+                calendars: 'Triple Métonique'
+            },
+            {
+                date: '2048-01-01',
+                event: 'Alignement Islamique',
+                description: 'Début d\'année islamique proche du grégorien',
+                calendars: 'Islamique-Grégorien'
+            },
+            {
+                date: '2078-12-25',
+                event: 'Diwali-Noël Proximité',
+                description: 'Deux fêtes lumineuses dans la même semaine',
+                calendars: 'Diwali-Noël'
+            }
+        ];
+
+        // Synchronization events
+        const synchronizationEvents = [
+            {
+                calendars: 'Grégorien-Julien',
+                description: 'Les deux calendriers étaient identiques jusqu\'en 1582',
+                nextSync: '2100 (décalage de 1 jour)',
+                frequency: 'Tous les 100 ans (sauf siècles divisibles par 400)',
+                drift: '1 jour tous les 128 ans'
+            },
+            {
+                calendars: 'Lunaire-Solaire (Cycle Métonique)',
+                description: '19 années solaires ≈ 235 mois lunaires',
+                nextSync: '2033 (début du prochain cycle)',
+                frequency: 'Tous les 19 ans',
+                drift: '2 heures par cycle'
+            },
+            {
+                calendars: 'Hébreu-Grégorien',
+                description: 'Synchronisation tous les 19 ans avec ajustements',
+                nextSync: '2034 (alignement majeur)',
+                frequency: 'Tous les 19 ans',
+                drift: 'Variable selon les cycles'
+            },
+            {
+                calendars: 'Chinois-Grégorien',
+                description: 'Alignement des Nouvel An lunaires et solaires',
+                nextSync: '2031 (Nouvel An chinois le 1er février)',
+                frequency: 'Variable',
+                drift: '11 jours par an'
+            },
+            {
+                calendars: 'Islamique-Grégorien',
+                description: 'Le calendrier islamique "glisse" par rapport au grégorien',
+                nextSync: '20874 (retour approximatif à la même position)',
+                frequency: 'Tous les 33 ans',
+                drift: '10-12 jours par an'
+            },
+            {
+                calendars: 'Persan-Grégorien',
+                description: 'Nowruz coïncide souvent avec l\'équinoxe de printemps',
+                nextSync: '2025 (Nowruz le 20 mars)',
+                frequency: 'Annuel',
+                drift: 'Très faible'
+            }
+        ];
+
+        // Initialize the page
+        function initializePage() {
+            renderCurrentDates();
+            renderCrossings();
+            renderSynchronizations();
+            renderComparison();
+            renderAdvancedAnalysis();
+            initializeCharts();
+            renderTimeline();
+            calculateMathematicalPredictions();
+        }
+
+        // Render current dates
+        function renderCurrentDates() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            calendarSystems.forEach(calendar => {
+                const card = document.createElement('div');
+                card.className = 'calendar-card';
+                card.innerHTML = `
+                    <div class="calendar-header">
+                        <span class="calendar-icon">${calendar.icon}</span>
+                        <div>
+                            <div class="calendar-name">${calendar.name}</div>
+                            <div class="calendar-type">${calendar.type}</div>
+                        </div>
+                    </div>
+                    <div class="calendar-date">
+                        ${calendar.currentDay}/${calendar.currentMonth}/${calendar.currentYear}
+                    </div>
+                    <div class="calendar-details">
+                        <div class="calendar-detail-item">
+                            <span class="calendar-detail-label">Époque :</span>
+                            <span class="calendar-detail-value">${calendar.epoch}</span>
+                        </div>
+                        <div class="calendar-detail-item">
+                            <span class="calendar-detail-label">Jours/an :</span>
+                            <span class="calendar-detail-value">${calendar.daysPerYear}</span>
+                        </div>
+                        <div class="calendar-detail-item">
+                            <span class="calendar-detail-label">Précision :</span>
+                            <span class="calendar-detail-value">${calendar.accuracy}</span>
+                        </div>
+                        <div class="calendar-detail-item">
+                            <span class="calendar-detail-label">Description :</span>
+                            <span class="calendar-detail-value">${calendar.description}</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Render crossing predictions
+        function renderCrossings() {
+            const grid = document.getElementById('crossingGrid');
+            grid.innerHTML = '';
+
+            crossingPredictions.forEach(crossing => {
+                const card = document.createElement('div');
+                card.className = 'crossing-card';
+                
+                const significanceClass = crossing.significance === 'EXTRÊMEMENT RARE' ? 'rare-event' : 
+                                       crossing.significance === 'RARE' ? 'highlight' : '';
+                
+                card.innerHTML = `
+                    <div class="crossing-header">
+                        <div class="crossing-calendars">${crossing.calendars}</div>
+                        <div class="crossing-significance ${significanceClass}">${crossing.significance}</div>
+                    </div>
+                    <div class="crossing-date">${crossing.gregorianDate}</div>
+                    <div class="crossing-details">
+                        <strong>Description :</strong> ${crossing.description}<br>
+                        <strong>Impact culturel :</strong> ${crossing.culturalImpact}<br>
+                        <strong>Calcul mathématique :</strong> ${crossing.mathematical}
+                    </div>
+                    <div class="crossing-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">Fréquence</div>
+                            <div class="metric-value">${crossing.frequency}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Probabilité</div>
+                            <div class="metric-value">${(crossing.probability * 100).toFixed(3)}%</div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Render timeline
+        function renderTimeline() {
+            const container = document.getElementById('timelineContainer');
+            container.innerHTML = '';
+
+            timelineEvents.forEach(event => {
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                item.innerHTML = `
+                    <div class="timeline-date">${event.date}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-event">${event.event}</div>
+                        <div class="timeline-description">${event.description}</div>
+                        <small style="color: #B8B8B8;">Calendriers : ${event.calendars}</small>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Calculate mathematical predictions
+        function calculateMathematicalPredictions() {
+            // Calculate next perfect metonic cycle
+            const currentYear = new Date().getFullYear();
+            const nextMetonicYear = Math.ceil((currentYear - 2033) / 19) * 19 + 2033;
+            
+            // Calculate Julian-Gregorian drift
+            const driftPerYear = 365.25 - 365.2425;
+            const yearsTo2100 = 2100 - currentYear;
+            const totalDrift = driftPerYear * yearsTo2100;
+            
+            // Calculate rare triple convergence
+            const lcm19_33 = 19 * 33; // Simplified LCM
+            const nextTripleConvergence = Math.ceil((currentYear - 2033) / lcm19_33) * lcm19_33 + 2033;
+            
+            document.getElementById('calculationResult').innerHTML = `
+                <strong>Prochain cycle métonique parfait :</strong> ${nextMetonicYear}<br>
+                <strong>Dérive Julien-Grégorien d\'ici 2100 :</strong> ${totalDrift.toFixed(2)} jours<br>
+                <strong>Prochaine convergence triple rare :</strong> ${nextTripleConvergence}
+            `;
+        }
+
+        // Render synchronizations
+        function renderSynchronizations() {
+            const grid = document.getElementById('syncGrid');
+            grid.innerHTML = '';
+
+            synchronizationEvents.forEach(event => {
+                const item = document.createElement('div');
+                item.className = 'sync-item';
+                item.innerHTML = `
+                    <div class="sync-calendars">${event.calendars}</div>
+                    <div class="sync-description">${event.description}</div>
+                    <div class="sync-date">Prochaine synchronisation : ${event.nextSync}</div>
+                    <div class="sync-date">Fréquence : ${event.frequency}</div>
+                    <div class="sync-date">Dérive : ${event.drift}</div>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        // Render comparison table
+        function renderComparison() {
+            const tbody = document.getElementById('comparisonTableBody');
+            tbody.innerHTML = '';
+
+            calendarSystems.forEach(calendar => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${calendar.icon} ${calendar.name}</td>
+                    <td>${calendar.type}</td>
+                    <td>${calendar.daysPerYear}</td>
+                    <td>${calendar.leapYear}</td>
+                    <td>${calendar.epoch}</td>
+                    <td>${calendar.accuracy}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Render advanced analysis
+        function renderAdvancedAnalysis() {
+            // Calculate precision analysis
+            const gregorian = calendarSystems.find(c => c.name === 'Grégorien');
+            const julian = calendarSystems.find(c => c.name === 'Julien');
+            
+            const driftPerYear = Math.abs(julian.daysPerYear - gregorian.daysPerYear);
+            const driftPerCentury = driftPerYear * 100;
+            
+            document.getElementById('precisionAnalysis').textContent = 
+                `Dérive Julien-Grégorien : ${driftPerCentury.toFixed(1)} jours par siècle`;
+            
+            document.getElementById('globalImpact').textContent = 
+                `Impact commercial : ~${(driftPerCentury * 0.1).toFixed(1)}% de décalage saisonnier`;
+            
+            document.getElementById('nextSync').textContent = 
+                'Prochaine convergence majeure : 2033-2034 (multiples cycles)';
+        }
+
+        // Initialize all charts
+        function initializeCharts() {
+            // Crossing predictions chart
+            const crossingCtx = document.getElementById('crossingChart');
+            if (crossingCtx) {
+                new Chart(crossingCtx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            {
+                                label: 'Croisements prédits',
+                                data: crossingPredictions.map((c, i) => ({
+                                    x: new Date(c.date).getFullYear(),
+                                    y: c.probability * 1000,
+                                    r: c.significance === 'EXTRÊMEMENT RARE' ? 15 : 
+                                       c.significance === 'RARE' ? 10 : 5
+                                })),
+                                backgroundColor: 'rgba(255, 215, 0, 0.6)',
+                                borderColor: 'rgba(255, 215, 0, 1)',
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Carte des Croisements Calendriques Prédits',
+                                color: '#FFD700',
+                                font: { size: 16 }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const crossing = crossingPredictions[context.dataIndex];
+                                        return [
+                                            `Date: ${crossing.gregorianDate}`,
+                                            `Probabilité: ${(crossing.probability * 100).toFixed(3)}%`,
+                                            `Fréquence: ${crossing.frequency}`
+                                        ];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                position: 'bottom',
+                                title: {
+                                    display: true,
+                                    text: 'Année',
+                                    color: 'white'
+                                },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Probabilité (×1000)',
+                                    color: 'white'
+                                },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Rare events chart
+            const rareEventsCtx = document.getElementById('rareEventsChart');
+            if (rareEventsCtx) {
+                new Chart(rareEventsCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: crossingPredictions.map(c => c.calendars),
+                        datasets: [{
+                            label: 'Années jusqu\'au prochain événement',
+                            data: crossingPredictions.map(c => {
+                                const eventYear = new Date(c.date).getFullYear();
+                                return eventYear - new Date().getFullYear();
+                            }),
+                            backgroundColor: crossingPredictions.map(c => 
+                                c.significance === 'EXTRÊMEMENT RARE' ? 'rgba(255, 0, 0, 0.6)' :
+                                c.significance === 'RARE' ? 'rgba(255, 140, 0, 0.6)' :
+                                'rgba(255, 215, 0, 0.6)'
+                            ),
+                            borderColor: crossingPredictions.map(c => 
+                                c.significance === 'EXTRÊMEMENT RARE' ? 'rgba(255, 0, 0, 1)' :
+                                c.significance === 'RARE' ? 'rgba(255, 140, 0, 1)' :
+                                'rgba(255, 215, 0, 1)'
+                            ),
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Temps d\'Attente jusqu\'aux Prochains Croisements',
+                                color: '#FFD700',
+                                font: { size: 16 }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Années restantes',
+                                    color: 'white'
+                                },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Sync chart
+            const syncCtx = document.getElementById('syncChart');
+            if (syncCtx) {
+                new Chart(syncCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: synchronizationEvents.map(e => e.calendars),
+                        datasets: [{
+                            label: 'Dérive annuelle (jours)',
+                            data: [0.0078, 0.087, 0.5, 11, 11.5, 0.0002],
+                            backgroundColor: 'rgba(255, 215, 0, 0.6)',
+                            borderColor: 'rgba(255, 215, 0, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Dérive Calendaire Annuelle',
+                                color: '#FFD700',
+                                font: { size: 16 }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Comparison chart
+            const compCtx = document.getElementById('comparisonChart');
+            if (compCtx) {
+                new Chart(compCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Précision', 'Complexité', 'Usage Global', 'Stabilité', 'Flexibilité'],
+                        datasets: [
+                            {
+                                label: 'Grégorien',
+                                data: [95, 60, 100, 95, 70],
+                                backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                                borderColor: 'rgba(255, 215, 0, 1)',
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'Islamique',
+                                data: [85, 40, 70, 90, 60],
+                                backgroundColor: 'rgba(255, 140, 0, 0.2)',
+                                borderColor: 'rgba(255, 140, 0, 1)',
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'Chinois',
+                                data: [90, 80, 85, 85, 80],
+                                backgroundColor: 'rgba(255, 69, 0, 0.2)',
+                                borderColor: 'rgba(255, 69, 0, 1)',
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Comparaison des Caractéristiques',
+                                color: '#FFD700',
+                                font: { size: 16 }
+                            }
+                        },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                pointLabels: { color: 'white' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Analysis chart
+            const analysisCtx = document.getElementById('analysisChart');
+            if (analysisCtx) {
+                new Chart(analysisCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['2025', '2030', '2035', '2040', '2045', '2050'],
+                        datasets: [
+                            {
+                                label: 'Décalage Julien-Grégorien (jours)',
+                                data: [0, 0.04, 0.39, 0.78, 1.17, 1.56],
+                                backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                                borderColor: 'rgba(255, 215, 0, 1)',
+                                borderWidth: 2,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Décalage Islamique-Grégorien (jours)',
+                                data: [0, 53, 106, 159, 212, 265],
+                                backgroundColor: 'rgba(255, 140, 0, 0.2)',
+                                borderColor: 'rgba(255, 140, 0, 1)',
+                                borderWidth: 2,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Points de croisement',
+                                data: [
+                                    {x: 2025, y: 0},
+                                    {x: 2031, y: 0},
+                                    {x: 2033, y: 0},
+                                    {x: 2048, y: 0},
+                                    {x: 2078, y: 0}
+                                ],
+                                type: 'scatter',
+                                backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                                borderColor: 'rgba(255, 0, 0, 1)',
+                                pointRadius: 8,
+                                pointHoverRadius: 10
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Projection des Décalages et Points de Convergence',
+                                color: '#FFD700',
+                                font: { size: 16 }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Décalage (jours)',
+                                    color: 'white'
+                                },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Année',
+                                    color: 'white'
+                                },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Tab navigation
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked nav tab
+            event.target.classList.add('active');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+        // Auto-update every minute
+        setInterval(() => {
+            // Update calculations if needed
+            calculateMathematicalPredictions();
+        }, 60000);
+    </script>
+</body>
+</html>
